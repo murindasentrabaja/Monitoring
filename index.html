@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Display Premium - MSB ERP System</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* =========================================================
+           TEMA VISUAL PREMIUM (Smooth, Colorful, Glassmorphism)
+           ========================================================= */
+        :root {
+            --glass-bg: rgba(20, 25, 45, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            
+            /* Smooth Accent Colors */
+            --accent-blue: #4facfe;
+            --accent-purple: #c471ed;
+            --accent-emerald: #00f2fe;
+            --accent-orange: #f6d365;
+            --accent-rose: #ff0844;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #f8fafc;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            background-color: #0b0f19;
+        }
+
+        /* ---------------------------------------------------------
+           ANIMATED FLUID BACKGROUND (Smooth & Colorful)
+           --------------------------------------------------------- */
+        .animated-bg {
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(
+                -45deg, 
+                #0f2027, #203a43, #2c5364, 
+                #1a2a6c, #b21f1f, #fdbb2d, 
+                #12c2e9, #c471ed, #f64f59
+            );
+            background-size: 400% 400%;
+            animation: gradientBG 30s ease infinite;
+            z-index: -1;
+            filter: blur(60px) saturate(120%) opacity(0.6);
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 1. HEADER */
+        .master-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 30px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 10;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* LOGO DIPERKECIL & PROPORSIONAL */
+        .logo-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 5px 12px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-box img {
+            height: 32px; /* Lebih kecil dan elegan */
+            object-fit: contain;
+            display: block;
+        }
+
+        .app-title h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            background: linear-gradient(to right, var(--accent-emerald), var(--accent-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0px;
+            text-transform: uppercase;
+        }
+
+        .app-title p {
+            font-size: 0.75rem;
+            color: #cbd5e1;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .datetime-box {
+            text-align: right;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 8px 18px;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+
+        .datetime-box .time {
+            font-family: 'Poppins', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px var(--accent-emerald);
+            letter-spacing: 2px;
+        }
+
+        .datetime-box .date {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* Progress Bar */
+        .progress-container { width: 100%; height: 4px; background: rgba(0, 0, 0, 0.3); z-index: 11; }
+        .progress-bar {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-rose));
+            box-shadow: 0 0 12px var(--accent-purple);
+            transition: width 1s linear;
+        }
+
+        /* 2. MAIN CONTENT (Tengah) */
+        .master-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 30px;
+            gap: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* SUMMARY HSE DI BAGIAN TENGAH ATAS */
+        .hse-summary-wrapper {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .summary-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            pointer-events: none;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        .sum-icon {
+            width: 55px; height: 55px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: #ffffff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* Smooth Gradients for Icons */
+        .ic-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        .ic-orange { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+        .ic-purple { background: linear-gradient(135deg, #c471ed 0%, #f64f59 100%); }
+        .ic-red { background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%); }
+
+        .sum-info h3 {
+            font-size: 1.8rem; font-family: 'Poppins', sans-serif;
+            font-weight: 700; color: #fff; line-height: 1.1;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .sum-info p {
+            font-size: 0.85rem; color: #cbd5e1;
+            font-weight: 500; margin-top: 4px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        /* AREA IFRAME SLIDESHOW */
+        .iframe-container {
+            flex: 1;
+            position: relative;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .iframe-slide {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border: none; opacity: 0; transform: scale(1.02);
+            transition: opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1), transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1; pointer-events: none;
+        }
+
+        .iframe-slide.active {
+            opacity: 1; transform: scale(1);
+            z-index: 2; pointer-events: auto;
+        }
+
+        .slide-indicator {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 10px; z-index: 10;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 16px; border-radius: 30px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.3); transition: all 0.4s ease; }
+        .dot.active { background: var(--accent-emerald); box-shadow: 0 0 12px var(--accent-emerald); width: 20px; border-radius: 8px; }
+
+        /* 3. FOOTER (Running Text & Info) */
+        .master-footer {
+            background: rgba(10, 15, 25, 0.7);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            display: flex; flex-direction: column; z-index: 10;
+        }
+
+        .marquee-zone {
+            padding: 12px 0;
+            background: linear-gradient(90deg, rgba(79, 172, 254, 0.1), rgba(0, 242, 254, 0.05));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex; align-items: center;
+        }
+
+        .marquee-text {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1rem; font-weight: 600; color: #e2e8f0;
+            letter-spacing: 0.5px;
+        }
+
+        /* Variasi Warna Teks Marquee */
+        .hl-hse { color: #00f2fe; font-weight: 800; text-shadow: 0 0 5px rgba(0,242,254,0.4); }
+        .hl-mot { color: #f6d365; font-weight: 800; text-shadow: 0 0 5px rgba(246,211,101,0.4); }
+        .hl-tip { color: #c471ed; font-weight: 800; text-shadow: 0 0 5px rgba(196,113,237,0.4); }
+        .hl-5r  { color: #4facfe; font-weight: 800; text-shadow: 0 0 5px rgba(79,172,254,0.4); }
+        .hl-qa  { color: #ff0844; font-weight: 800; text-shadow: 0 0 5px rgba(255,8,68,0.4); }
+        
+        .separator { color: rgba(255,255,255,0.2); margin: 0 40px; font-size: 0.8rem; }
+
+        .credit-zone {
+            text-align: center; padding: 8px; font-size: 0.7rem;
+            color: #64748b; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+        }
+        .credit-zone span { color: var(--accent-blue); }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="animated-bg"></div>
+
+    <header class="master-header">
+        <div class="header-left">
+            <div class="logo-box">
+                <img src="Murinda Logo.png" alt="Logo MSB" onerror="this.style.display='none'">
+            </div>
+            <div class="app-title">
+                <h1>MSB ERP System</h1>
+                <p>Dashboard Monitoring Terpadu</p>
+            </div>
+        </div>
+        <div class="datetime-box">
+            <div class="time" id="clock-time">00:00:00</div>
+            <div class="date" id="clock-date">Memuat Tanggal...</div>
+        </div>
+    </header>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="transition-progress"></div>
+    </div>
+
+    <main class="master-content">
+        
+        <div class="hse-summary-wrapper" id="masterGlobalSummary">
+            <div style="grid-column: span 4; text-align: center; color: #94a3b8; padding: 20px;">
+                <i class="fas fa-circle-notch fa-spin"></i> Mensinkronisasi Data HSE...
+            </div>
+        </div>
+
+        <div class="iframe-container">
+            <iframe src="Progress.html" class="iframe-slide active" id="slide-0" title="Monitoring Produksi"></iframe>
+            <iframe src="Master Schedule.html" class="iframe-slide" id="slide-1" title="Jadwal Pengiriman"></iframe>
+            <iframe src="QC.html" class="iframe-slide" id="slide-2" title="QC Inspection"></iframe>
+
+            <div class="slide-indicator">
+                <div class="dot active" id="dot-0"></div>
+                <div class="dot" id="dot-1"></div>
+                <div class="dot" id="dot-2"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="master-footer">
+        <div class="marquee-zone">
+            <marquee behavior="scroll" direction="left" scrollamount="7" class="marquee-text">
+                <span class="hl-hse"><i class="fas fa-hard-hat"></i> HSE PRIORITAS UTAMA:</span> Keselamatan Anda adalah Nyawa Perusahaan. Pastikan menggunakan APD Lengkap, Lapor Potensi Bahaya, Bekerja dengan Aman, Pulang dengan Nyaman! 
+                <span class="separator">◆ ◇ ◆</span> 
+                
+                <span class="hl-mot"><i class="fas fa-rocket"></i> MOTIVASI KERJA:</span> Kualitas terbaik bukan sekadar standar, melainkan kebiasaan. Mari berikan dedikasi terbaik untuk pencapaian target MSB hari ini! 
+                <span class="separator">◆ ◇ ◆</span> 
+                
+                <span class="hl-5r"><i class="fas fa-recycle"></i> BUDAYA 5R (5S):</span> Ringkas, Rapi, Resik, Rawat, Rajin! Lingkungan kerja yang bersih mencerminkan pikiran yang jernih dan hasil produksi yang maksimal.
+                <span class="separator">◆ ◇ ◆</span> 
+                
+                <span class="hl-qa"><i class="fas fa-check-double"></i> STANDAR KUALITAS (QC):</span> Quality is everyone's responsibility. Pastikan setiap proses kerja Anda mematuhi spesifikasi teknik tanpa ada cacat terlewat.
+                <span class="separator">◆ ◇ ◆</span> 
+
+                <span class="hl-tip"><i class="fas fa-leaf"></i> TIPS KESEHATAN:</span> Lelah itu wajar, jangan paksakan diri. Ambil jeda sejenak, perbanyak minum air putih. Kesehatan fisik dan mental Anda sangat berharga bagi keluarga di rumah!
+            </marquee>
+        </div>
+        <div class="credit-zone">
+            PT Murinda Sentra Baja - Kalijati, Subang <span>|</span> Developed by Aspuro Amarulloh Khoiri
+        </div>
+    </footer>
+
+    <script>
+        // ==========================================
+        // 1. SISTEM JAM & TANGGAL REAL-TIME
+        // ==========================================
+        function updateMasterClock() {
+            const now = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('clock-time').innerText = `${hours}:${minutes}:${seconds} WIB`;
+            document.getElementById('clock-date').innerText = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+        }
+        setInterval(updateMasterClock, 1000);
+        updateMasterClock();
+
+        // ==========================================
+        // 2. SISTEM CAROUSEL IFRAME & PROGRESS BAR
+        // ==========================================
+        const totalSlides = 3;
+        const displayDuration = 60; // Waktu tampil per halaman (60 detik)
+        let currentSlide = 0;
+        let progressSeconds = 0;
+
+        function switchSlide(nextIndex) {
+            document.getElementById(`slide-${currentSlide}`).classList.remove('active');
+            document.getElementById(`dot-${currentSlide}`).classList.remove('active');
+            
+            currentSlide = nextIndex;
+            
+            document.getElementById(`slide-${currentSlide}`).classList.add('active');
+            document.getElementById(`dot-${currentSlide}`).classList.add('active');
+        }
+
+        setInterval(() => {
+            progressSeconds++;
+            const percentage = (progressSeconds / displayDuration) * 100;
+            document.getElementById('transition-progress').style.width = `${percentage}%`;
+
+            if (progressSeconds >= displayDuration) {
+                progressSeconds = 0;
+                document.getElementById('transition-progress').style.width = '0%';
+                
+                let nextSlide = currentSlide + 1;
+                if (nextSlide >= totalSlides) nextSlide = 0;
+                switchSlide(nextSlide);
+            }
+        }, 1000);
+
+        // ==========================================
+        // 3. FETCH DATA SUMMARY DARI GOOGLE APPS SCRIPT (Sistem HSE)
+        // ==========================================
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyUHQnn4swXg-4h-YHKr6Z3rkjgYVGIl7WE0tkaTL7y8WYh2fKK_1oPISiiXf0rIbCR/exec";
+
+        async function fetchHSEData() {
+            try {
+                const response = await fetch(WEB_APP_URL);
+                if (!response.ok) throw new Error("Gagal memuat data");
+                const data = await response.json();
+                renderMasterSummary(data);
+            } catch (error) {
+                console.error("Error fetching HSE Data:", error);
+                document.getElementById('masterGlobalSummary').innerHTML = `
+                    <div style="grid-column: span 4; text-align: center; color: #f87171; padding: 10px; background: rgba(255,0,0,0.1); border-radius: 10px;">
+                        <i class="fas fa-exclamation-triangle"></i> Gagal menyinkronkan data HSE dari Server.
+                    </div>`;
+            }
+        }
+
+        function renderMasterSummary(sheetsData) {
+            let totalHazard = 0, openHazard = 0;
+            let totalInsiden = 0, openInsiden = 0;
+
+            const hazardSheet = sheetsData.find(s => s.sheetName.toLowerCase().includes("hazard"));
+            const insidenSheet = sheetsData.find(s => s.sheetName.toLowerCase().includes("insiden"));
+
+            // Hitung Hazard
+            if (hazardSheet && hazardSheet.data.length > 1) {
+                totalHazard = hazardSheet.data.length - 1;
+                const headers = hazardSheet.data[0].map(h => h.toString().toLowerCase().trim());
+                let statusIdx = headers.findIndex(h => h.includes("status"));
+                if (statusIdx !== -1) {
+                    for(let i = 1; i < hazardSheet.data.length; i++) {
+                        let stat = hazardSheet.data[i][statusIdx] ? hazardSheet.data[i][statusIdx].toString().toLowerCase() : "";
+                        if(stat.includes("open") || stat.includes("belum") || stat.includes("outstanding")) openHazard++;
+                    }
+                }
+            }
+
+            // Hitung Insiden
+            if (insidenSheet && insidenSheet.data.length > 1) {
+                totalInsiden = insidenSheet.data.length - 1;
+                const headers = insidenSheet.data[0].map(h => h.toString().toLowerCase().trim());
+                let statusIdx = headers.findIndex(h => h.includes("status"));
+                if (statusIdx !== -1) {
+                    for(let i = 1; i < insidenSheet.data.length; i++) {
+                        let stat = insidenSheet.data[i][statusIdx] ? insidenSheet.data[i][statusIdx].toString().toLowerCase() : "";
+                        if(stat.includes("open") || stat.includes("investigasi") || stat.includes("belum")) openInsiden++;
+                    }
+                }
+            }
+
+            const container = document.getElementById('masterGlobalSummary');
+            container.innerHTML = `
+                <div class="summary-card">
+                    <div class="sum-icon ic-blue"><i class="fas fa-biohazard"></i></div>
+                    <div class="sum-info">
+                        <h3 id="count-1">${totalHazard}</h3>
+                        <p>Total Hazard</p>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="sum-icon ic-orange"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="sum-info">
+                        <h3 id="count-2">${openHazard}</h3>
+                        <p>Hazard Open</p>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="sum-icon ic-purple"><i class="fas fa-kit-medical"></i></div>
+                    <div class="sum-info">
+                        <h3 id="count-3">${totalInsiden}</h3>
+                        <p>Total Insiden</p>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="sum-icon ic-red"><i class="fas fa-radiation"></i></div>
+                    <div class="sum-info">
+                        <h3 id="count-4">${openInsiden}</h3>
+                        <p>Dlm Investigasi</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Panggil fetch pertama kali saat halaman dimuat
+        fetchHSEData();
+        
+        // Auto-refresh data HSE setiap 5 menit (300000 ms) agar data selalu up-to-date
+        setInterval(fetchHSEData, 300000);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QC Inspection Filtered</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --primary-color: #0d9488; --accent-color: #f97316; --success-color: #10b981; 
+            --bg-color: #f8fafc; --text-dark: #1e293b;
+            --glass-bg: rgba(255, 255, 255, 0.9); --glass-border: #e2e8f0;
+        }
+
+        body { margin: 0; padding: 20px; background-color: var(--bg-color); color: var(--text-dark); font-family: 'Plus Jakarta Sans', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        .glass-container { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .filter-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; }
+        select, input[type="text"] { border: 1px solid #cbd5e1; padding: 10px 12px; border-radius: 8px; font-family: inherit; font-size: 0.95rem; }
+        
+        .summary-panel { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 15px; }
+        .summary-card { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; text-align: center; flex: 1; min-width: 100px; }
+        .summary-card.defect { border-color: #fecaca; background: #fff5f5; }
+        .summary-title { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 5px; }
+        .summary-value { font-size: 1.6rem; font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--primary-color); }
+        .summary-card.defect .summary-value { color: #dc2626; }
+
+        .table-wrapper { flex: 1; overflow: auto; border-radius: 10px; border: 1px solid #e2e8f0; background: white; position: relative; scroll-behavior: smooth; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; white-space: nowrap; }
+        th { background: #f8fafc; color: #334155; padding: 12px 15px; font-size: 0.85rem; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; z-index: 10; }
+        td { padding: 10px 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        
+        th:nth-child(1), td:nth-child(1) { position: sticky; left: 0; z-index: 6; }
+        th:nth-child(2), td:nth-child(2) { position: sticky; left: 140px; z-index: 6; }
+        th:nth-child(3), td:nth-child(3) { position: sticky; left: 240px; z-index: 6; }
+        th:nth-child(4), td:nth-child(4) { position: sticky; left: 350px; z-index: 6; border-right: 2px solid #cbd5e1; }
+        th:nth-child(-n+4) { z-index: 12; background: #f0fdfa; }
+        tr:nth-child(odd) td:nth-child(-n+4) { background: #ffffff; }
+        tr:nth-child(even) td:nth-child(-n+4) { background: #f8fafc; }
+
+        .status-badge { padding: 4px 8px; border-radius: 6px; font-weight: 700; font-size: 0.8rem; }
+        .status-pass { background: #d1fae5; color: #065f46; }
+        .status-defect { background: #fee2e2; color: #991b1b; }
+        .status-none { background: #f1f5f9; color: #94a3b8; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="glass-container">
+        <div class="filters-grid">
+            <div class="filter-group" style="grid-column: span 2;">
+                <label>Pencarian</label>
+                <input type="text" id="search-input" placeholder="Cari Serial Number, Client..." oninput="applyFilters()">
+            </div>
+            <div class="filter-group"><label>Client</label><select id="filter-client"><option value="All">All Clients</option></select></div>
+            <div class="filter-group"><label>Unit</label><select id="filter-unit"><option value="All">All Units</option></select></div>
+            <div class="filter-group"><label>Periode</label><select id="filter-periode"><option value="All">All Periode</option></select></div>
+        </div>
+    </div>
+
+    <div class="summary-panel" id="summary-panel">
+        <div class="summary-card"><div class="summary-title">Total Unit Defect</div><div class="summary-value" id="sum-total">0</div></div>
+        <div class="summary-card defect"><div class="summary-title">Assy Defect</div><div class="summary-value" id="sum-assy">0</div></div>
+        <div class="summary-card defect"><div class="summary-title">Weld Defect</div><div class="summary-value" id="sum-weld">0</div></div>
+        <div class="summary-card defect"><div class="summary-title">Leak Defect</div><div class="summary-value" id="sum-leak">0</div></div>
+        <div class="summary-card defect"><div class="summary-title">Fill Defect</div><div class="summary-value" id="sum-fill">0</div></div>
+        <div class="summary-card defect"><div class="summary-title">Align Defect</div><div class="summary-value" id="sum-align">0</div></div>
+        <div class="summary-card defect"><div class="summary-title">Cover Defect</div><div class="summary-value" id="sum-cover">0</div></div>
+        <div class="summary-card defect"><div class="summary-title">Paint Defect</div><div class="summary-value" id="sum-paint">0</div></div>
+    </div>
+
+    <div class="table-wrapper" id="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Serial Number</th><th>Unit</th><th>Unit Number</th><th>Client</th><th>Periode</th>
+                    <th>Assembly</th><th>Assy Defect</th><th>Welding</th><th>Welding Defect</th>
+                    <th>Leak Test</th><th>Leak Test Defect</th><th>Filling</th><th>Filling Defect</th>
+                    <th>Alignment</th><th>Alignment Defect</th><th>Covering</th><th>Cover Defect</th>
+                    <th>Painting</th><th>Painting Defect</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"><tr><td colspan="19" style="text-align:center;">Memuat data...</td></tr></tbody>
+        </table>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7xje4AJdwJ0O2X52IYmpOSybx-J6XceZ-Kre7BeLzQcSsGjw-0-8D565-xfwq27lAYQ/exec"; 
+        let rawData = [];
+        const cols = ["Serial Number", "Unit", "Unit Number", "Client", "Periode", "Assembly", "Assy Defect", "Welding", "Welding Defect", "Leak Test", "Leak Test Defect", "Filling", "Filling Defect", "Alignment", "Alignment Defect", "Covering", "Cover Defect", "Painting", "Painting Defect"];
+
+        // ===== PENGATURAN AUTO SCROLL =====
+        let isAutoScrolling = true;
+        let scrollSpeed = 1;     // Jarak scroll dalam piksel (tambahkan untuk mempercepat)
+        let scrollDelay = 40;    // Jeda waktu antar scroll dalam milidetik (kurangi untuk mempercepat)
+        let scrollTimeout;
+
+        function initAutoScroll() {
+            const container = document.getElementById('table-container');
+            
+            setInterval(() => {
+                // Jika user sedang mencari sesuatu/hover tabel, hentikan sementara
+                if (!isAutoScrolling) return;
+                
+                container.scrollTop += scrollSpeed;
+                
+                // Cek apakah tabel sudah bergulir mentok sampai bawah
+                if (container.scrollTop + container.clientHeight >= container.scrollHeight - 1) {
+                    isAutoScrolling = false; // Hentikan sejenak
+                    clearTimeout(scrollTimeout);
+                    
+                    // Beri jeda 2 detik sebelum kembali ke atas
+                    scrollTimeout = setTimeout(() => {
+                        container.scrollTop = 0;
+                        isAutoScrolling = true; // Mulai gulir lagi
+                    }, 2000); 
+                }
+            }, scrollDelay);
+
+            // Fitur Pause on Hover: Hentikan guliran saat kursor berada di area tabel
+            container.addEventListener('mouseenter', () => isAutoScrolling = false);
+            container.addEventListener('mouseleave', () => {
+                // Pastikan tidak mereset jeda tunggu (timeout) saat kembali ke atas
+                if(container.scrollTop + container.clientHeight < container.scrollHeight - 1) {
+                    isAutoScrolling = true;
+                }
+            });
+        }
+        // ====================================
+
+        async function fetchData() {
+            try {
+                const res = await fetch(SCRIPT_URL);
+                const data = await res.json();
+                
+                rawData = data.rows;
+                data.headers.forEach(h => {
+                    cols.forEach(c => {
+                        if (h.toLowerCase().includes(c.toLowerCase())) {
+                            rawData.forEach(r => { if(r[h] !== undefined) r[c] = r[h]; });
+                        }
+                    });
+                });
+                populateFilters(); applyFilters();
+            } catch (err) { console.error(err); }
+        }
+
+        function populateFilters() {
+            const cSel = document.getElementById('filter-client'), uSel = document.getElementById('filter-unit'), pSel = document.getElementById('filter-periode');
+            const clients = new Set(); rawData.forEach(r => { if(r.Client) clients.add(r.Client); });
+            while(cSel.options.length > 1) cSel.remove(1);
+            Array.from(clients).sort().forEach(v => cSel.appendChild(new Option(v, v)));
+            
+            const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            while(pSel.options.length > 1) pSel.remove(1);
+            months.forEach(v => pSel.appendChild(new Option(v, v)));
+            updateUnits('All');
+        }
+
+        function updateUnits(client) {
+            const uSel = document.getElementById('filter-unit');
+            while(uSel.options.length > 1) uSel.remove(1);
+            const units = new Set();
+            rawData.forEach(r => { if ((client === 'All' || r.Client === client) && r.Unit) units.add(r.Unit); });
+            Array.from(units).sort().forEach(v => uSel.appendChild(new Option(v, v)));
+        }
+
+        document.getElementById('filter-client').addEventListener('change', function() { updateUnits(this.value); applyFilters(); });
+        document.getElementById('filter-unit').addEventListener('change', applyFilters);
+        document.getElementById('filter-periode').addEventListener('change', applyFilters);
+        
+        // Hentikan scroll otomatis sementara jika pengguna sedang mengetik pencarian
+        document.getElementById('search-input').addEventListener('focus', () => isAutoScrolling = false);
+        document.getElementById('search-input').addEventListener('blur', () => isAutoScrolling = true);
+
+        function isDefect(val) {
+            if (!val) return false;
+            const s = String(val).trim().toUpperCase();
+            return !['', '-', 'NULL', 'OK', 'PASS', 'DONE', 'YES', 'TRUE', 'NONE'].includes(s);
+        }
+
+        function applyFilters() {
+            const client = document.getElementById('filter-client').value;
+            const unit = document.getElementById('filter-unit').value;
+            const periode = document.getElementById('filter-periode').value;
+            const search = document.getElementById('search-input').value.toLowerCase().trim();
+
+            let counts = { total: 0, assy: 0, weld: 0, leak: 0, fill: 0, align: 0, cover: 0, paint: 0 };
+            
+            let filtered = rawData.filter(r => {
+                let match = true;
+                if (client !== 'All' && r.Client != client) match = false;
+                if (unit !== 'All' && r.Unit != unit) match = false;
+                if (periode !== 'All' && !(String(r.Periode).toLowerCase().includes(periode.toLowerCase()))) match = false;
+                if (search && match) {
+                    if (!Object.values(r).join(" ").toLowerCase().includes(search)) match = false;
+                }
+
+                // LOGIKA UTAMA: Hanya tampilkan baris yang ada Defect
+                let hasDefect = isDefect(r["Assy Defect"]) || isDefect(r["Welding Defect"]) || isDefect(r["Leak Test Defect"]) || 
+                                isDefect(r["Filling Defect"]) || isDefect(r["Alignment Defect"]) || isDefect(r["Cover Defect"]) || isDefect(r["Painting Defect"]);
+                
+                if (!hasDefect) match = false;
+
+                if (match) {
+                    counts.total++;
+                    if (isDefect(r["Assy Defect"])) counts.assy++;
+                    if (isDefect(r["Welding Defect"])) counts.weld++;
+                    if (isDefect(r["Leak Test Defect"])) counts.leak++;
+                    if (isDefect(r["Filling Defect"])) counts.fill++;
+                    if (isDefect(r["Alignment Defect"])) counts.align++;
+                    if (isDefect(r["Cover Defect"])) counts.cover++;
+                    if (isDefect(r["Painting Defect"])) counts.paint++;
+                }
+                return match;
+            });
+
+            document.getElementById('sum-total').innerText = counts.total;
+            document.getElementById('sum-assy').innerText = counts.assy;
+            document.getElementById('sum-weld').innerText = counts.weld;
+            document.getElementById('sum-leak').innerText = counts.leak;
+            document.getElementById('sum-fill').innerText = counts.fill;
+            document.getElementById('sum-align').innerText = counts.align;
+            document.getElementById('sum-cover').innerText = counts.cover;
+            document.getElementById('sum-paint').innerText = counts.paint;
+
+            renderTable(filtered);
+        }
+
+        function formatStatus(val, isDefectCol) {
+            const s = String(val).trim().toUpperCase();
+            if(!s || s === 'NULL' || s === '-') return `<span class="status-badge status-none">-</span>`;
+            if(isDefect(s)) return `<span class="status-badge status-defect">${val}</span>`;
+            if(!isDefectCol) return `<span class="status-badge status-pass">${s}</span>`;
+            return val;
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('table-body'); tbody.innerHTML = '';
+            if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="19" style="text-align:center;">Tidak ada temuan/defect pada kriteria ini.</td></tr>'; return; }
+            
+            data.forEach(r => {
+                const tr = document.createElement('tr');
+                cols.forEach(c => {
+                    const td = document.createElement('td');
+                    let v = r[c] || "";
+                    if (c.includes("Defect")) td.innerHTML = formatStatus(v, true);
+                    else if (["Assembly", "Welding", "Leak Test", "Filling", "Alignment", "Covering", "Painting"].includes(c)) td.innerHTML = formatStatus(v, false);
+                    else td.textContent = v;
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Panggil fungsi inisialisasi awal
+        fetchData();
+        setInterval(fetchData, 60000); // Reload data tiap 1 menit
+        initAutoScroll();              // Jalankan auto-scroll
+    </script>
+</body>
+</html>

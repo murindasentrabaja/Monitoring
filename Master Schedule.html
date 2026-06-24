@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Schedule</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
+    <style>
+        :root {
+            --murinda-blue: #0A192F; 
+            --murinda-red: #D90429;
+            --bg-body: transparent; /* Tembus pandang agar menyatu dengan master display */
+            --bg-surface: #FFFFFF;
+            --border-color: #E2E8F0;
+            --text-dark: #1E293B;
+            --text-muted: #64748B;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.03);
+            --transition: all 0.3s ease;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-body); color: var(--text-dark); height: 100vh; display: flex; flex-direction: column; }
+        
+        .main-layout { display: grid; grid-template-columns: 360px 1fr; gap: 20px; padding: 20px; flex-grow: 1; width: 100%; height: 100%; overflow: hidden; }
+
+        .summary-card { background: rgba(255, 255, 255, 0.9); border-radius: var(--radius-lg); padding: 24px; border: 1px solid var(--border-color); box-shadow: var(--shadow-subtle); display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        .summary-title { font-size: 1rem; font-weight: 800; color: var(--murinda-blue); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; }
+        .summary-list { display: flex; flex-direction: column; gap: 15px; overflow-y: auto; padding-right: 6px; flex-grow: 1; }
+        
+        .summary-list::-webkit-scrollbar { width: 5px; }
+        .summary-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .client-collapse-item { background: #FAFAFA; border-radius: 10px; border: 1px solid var(--border-color); overflow: hidden; }
+        .client-header-btn { width: 100%; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: none; border-bottom: 1px solid var(--border-color); text-align: left; font-family: inherit; cursor: default; }
+        .client-title-text { font-size: 0.9rem; font-weight: 800; color: var(--murinda-blue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        .summary-count { background: #e2e8f0; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; color: var(--murinda-blue); }
+
+        /* Panel Detail Langsung Ditampilkan */
+        .client-detail-panel { display: flex; padding: 12px; flex-direction: column; gap: 8px; background: #FFFFFF; }
+        .breakdown-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: 600; padding: 8px 10px; border-radius: 6px; background: #f8fafc; border: 1px solid #e2e8f0; }
+        .unit-tag { color: var(--text-dark); font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .color-indicator-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+        .calendar-wrapper { background: rgba(255, 255, 255, 0.9); border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-subtle); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        .calendar-header-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; background: transparent; padding: 20px 20px 10px 20px; border-bottom: 2px solid var(--border-color); }
+        .day-header { text-align: center; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; }
+        .day-header.sunday { color: var(--murinda-red); }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; padding: 10px 20px 20px 20px; flex-grow: 1; overflow: hidden; }
+        .day-cell { background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        .date-num { font-size: 1.1rem; font-weight: 800; color: var(--text-dark); align-self: flex-end; }
+        .day-cell.holiday { background: #FFF5F5; border-color: #FFE4E6; }
+        .day-cell.holiday .date-num { color: var(--murinda-red); }
+
+        .items-stack { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; flex-grow: 1; overflow-y: auto; padding-right: 4px; }
+        .items-stack::-webkit-scrollbar { width: 3px; }
+        .items-stack::-webkit-scrollbar-thumb { background: #CBD5E1; }
+
+        .serial-badge { padding: 8px; border-radius: 6px; cursor: pointer; border-left: 4px solid transparent; display: flex; flex-direction: column; gap: 6px; }
+        .serial-title { font-size: 0.75rem; font-weight: 800; word-break: break-word; }
+        .status-badge { font-size: 0.65rem; padding: 4px 6px; border-radius: 4px; width: fit-content; font-weight: 800; text-transform: uppercase; }
+        .status-badge.stock { background: #E2E8F0; color: #475569; border: 1px solid #CBD5E1; }
+        .status-badge.pending { background: #FEF08A; color: #854D0E; border: 1px solid #FDE047; }
+        .status-badge.sent { background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; }
+
+        .loader-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.9); display: none; justify-content: center; align-items: center; z-index: 30; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #E2E8F0; border-top-color: var(--accent-blue); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-wrapper { background: #fff; border-radius: var(--radius-lg); width: 90%; max-width: 500px; padding: 25px; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-header-zone { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        .btn-close-modal { background: #f1f5f9; color: var(--text-dark); border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; }
+        .modal-grid-body { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding-right: 5px; }
+        .info-card-row { background: #f8fafc; padding: 10px; border-radius: 8px; border-left: 3px solid var(--accent-blue); }
+        .info-card-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); display: block; }
+        .info-card-value { font-size: 0.95rem; font-weight: 600; }
+        .barcode-display-container { display: flex; justify-content: center; background: #FFF; border: 2px dashed #CBD5E1; padding: 10px; margin-top: 5px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+    <div class="main-layout">
+        <div class="summary-card">
+            <div class="summary-title">📊 Pengiriman Bulan Ini</div>
+            <div class="summary-list" id="summaryContainer"></div>
+        </div>
+
+        <div class="calendar-wrapper">
+            <div class="loader-overlay" id="loader"><div class="spinner"></div></div>
+            <div class="calendar-header-grid" id="calendarHeader"></div>
+            <div class="calendar-grid" id="calendarDays"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="itemModal">
+        <div class="modal-wrapper">
+            <div class="modal-header-zone">
+                <h3 style="color: var(--murinda-blue); font-size: 1.2rem;">Rincian Unit</h3>
+                <button class="btn-close-modal" onclick="closeModal()">X</button>
+            </div>
+            <div class="modal-grid-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwIN-kg3cjvdHV7pStMbRIpCJtQeo9j80ncjDPCZ5TosPcJaZPxpRrhUDkwzgVyor_gig/exec'; 
+        let deliveriesData = [];
+        
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+        const premiumColorPalette = { "LR-KRB": { bg: "#FCE7F3", border: "#DB2777", text: "#9D174D" }, "LG": { bg: "#F0FDF4", border: "#16A34A", text: "#15803D" }, "STD": { bg: "#F0F9FF", border: "#0284C7", text: "#0369A1" }, "LG-BARU": { bg: "#ECFDF5", border: "#10B981", text: "#065F46" }, "LBX": { bg: "#F5F3FF", border: "#7C3AED", text: "#5B21B6" }, "BH": { bg: "#FFF0F5", border: "#F43F5E", text: "#BE123C" }, "LR-KBB": { bg: "#F5F5F4", border: "#78716C", text: "#44403C" }, "CN": { bg: "#E0F2FE", border: "#0EA5E9", text: "#0369A1" }, "KSB": { bg: "#FEF3C7", border: "#D97706", text: "#92400E" }, "PC200": { bg: "#FFF9E6", border: "#F5B041", text: "#B97700" }, "PC200-J11": { bg: "#FEFCE8", border: "#EAB308", text: "#A16207" }, "PC210": { bg: "#FFF1F2", border: "#E11D48", text: "#9F1239" }, "PC350": { bg: "#EEF2FF", border: "#4F46E5", text: "#3730A3" }, "PC400": { bg: "#FFEDD5", border: "#EA580C", text: "#9A3412" }, "PC850": { bg: "#ECFEFF", border: "#06B6D4", text: "#155E75" }, "PC1250": { bg: "#FFFBEB", border: "#B45309", text: "#78350F" }, "PC2000": { bg: "#F1F5F9", border: "#475569", text: "#1E293B" }, "PC950": { bg: "#FEE2E2", border: "#EF4444", text: "#991B1B" } };
+
+        function getDynamicStyle(categoryName) {
+            const key = String(categoryName).toUpperCase().trim();
+            if (premiumColorPalette[key]) return premiumColorPalette[key];
+            let hash = 0; for (let i = 0; i < key.length; i++) hash = key.charCodeAt(i) + ((hash << 5) - hash);
+            const hue = Math.abs(hash) % 360; return { bg: `hsl(${hue}, 85%, 96%)`, border: `hsl(${hue}, 70%, 45%)`, text: `hsl(${hue}, 80%, 25%)` };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchData();
+            setInterval(() => fetchData(true), 60000);
+        });
+
+        async function fetchData(isSilent = false) {
+            if(!isSilent) document.getElementById('loader').style.display = 'flex';
+            try {
+                const response = await fetch(APPS_SCRIPT_URL);
+                const data = await response.json();
+                deliveriesData = data.error ? [] : data;
+            } catch (err) { console.error("Error:", err); } 
+            finally {
+                if(!isSilent) document.getElementById('loader').style.display = 'none';
+                renderData();
+            }
+        }
+
+        function renderData() {
+            renderMonthlySummary();
+            renderWeeklyCalendar();
+        }
+
+        // FUNGSI BARU: Hitung Summary Untuk 1 Bulan Penuh
+        function renderMonthlySummary() {
+            const today = new Date();
+            const currMonth = today.getMonth();
+            const currYear = today.getFullYear();
+            let clientDataSummary = {};
+
+            deliveriesData.forEach(item => {
+                const dateKey = Object.keys(item).find(k => k.toLowerCase().includes('delivery date') || k.toLowerCase().includes('tanggal'));
+                if (dateKey && item[dateKey]) {
+                    const itemD = new Date(item[dateKey]);
+                    if (itemD.getMonth() === currMonth && itemD.getFullYear() === currYear) {
+                        const codeKey = Object.keys(item).find(k => k.toLowerCase() === 'code serial');
+                        const cat = codeKey && item[codeKey] ? String(item[codeKey]).trim() : 'LAINNYA';
+                        const clientKey = Object.keys(item).find(k => k.toLowerCase().includes('client') || k.toLowerCase().includes('nama'));
+                        const client = clientKey && item[clientKey] ? String(item[clientKey]).trim() : 'Lainnya';
+
+                        if (!clientDataSummary[client]) clientDataSummary[client] = { _total: 0 };
+                        clientDataSummary[client]._total++;
+                        clientDataSummary[client][cat] = (clientDataSummary[client][cat] || 0) + 1;
+                    }
+                }
+            });
+
+            const container = document.getElementById('summaryContainer');
+            container.innerHTML = '';
+            if (Object.keys(clientDataSummary).length === 0) { container.innerHTML = '<div style="color: #64748B; font-size: 0.9rem; padding:10px;">Tidak ada jadwal bulan ini.</div>'; return; }
+
+            // Tampilkan panel detail secara langsung tanpa perlu diklik
+            for (const [client, details] of Object.entries(clientDataSummary)) {
+                const wrap = document.createElement('div'); wrap.className = 'client-collapse-item';
+                const header = document.createElement('div'); header.className = 'client-header-btn';
+                header.innerHTML = `<span class="client-title-text">${client}</span><div class="summary-count">${details._total} Unit</div>`;
+                const panel = document.createElement('div'); panel.className = 'client-detail-panel';
+                
+                let bHtml = '';
+                for (const [type, qty] of Object.entries(details)) {
+                    if(type === '_total') continue;
+                    bHtml += `<div class="breakdown-row"><span class="unit-tag"><span class="color-indicator-dot" style="background-color: ${getDynamicStyle(type).border}"></span>Tipe ${type}</span><span>${qty} Unit</span></div>`;
+                }
+                panel.innerHTML = bHtml;
+                wrap.appendChild(header); wrap.appendChild(panel); container.appendChild(wrap);
+            }
+        }
+
+        // Tampilan Kalender Tetap Minggu Ini
+        function renderWeeklyCalendar() {
+            const header = document.getElementById('calendarHeader');
+            const grid = document.getElementById('calendarDays');
+            header.innerHTML = ''; grid.innerHTML = '';
+
+            const today = new Date();
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay()); 
+
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            days.forEach((day, i) => {
+                const el = document.createElement('div');
+                el.className = `day-header ${i===0 ? 'sunday' : ''}`; el.innerText = day;
+                header.appendChild(el);
+            });
+
+            for (let i = 0; i < 7; i++) {
+                const cellDate = new Date(startOfWeek);
+                cellDate.setDate(startOfWeek.getDate() + i);
+                
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
+                if (i === 0) cell.classList.add('holiday'); 
+                
+                const num = document.createElement('div');
+                num.className = 'date-num'; 
+                num.innerText = `${cellDate.getDate()} ${monthNames[cellDate.getMonth()]}`;
+                cell.appendChild(num);
+
+                const stack = document.createElement('div');
+                stack.className = 'items-stack';
+
+                const todaysItems = deliveriesData.filter(item => {
+                    const dateKey = Object.keys(item).find(k => k.toLowerCase().includes('delivery date') || k.toLowerCase().includes('tanggal'));
+                    if (dateKey && item[dateKey]) {
+                        const itemD = new Date(item[dateKey]);
+                        return itemD.getDate() === cellDate.getDate() && itemD.getMonth() === cellDate.getMonth() && itemD.getFullYear() === cellDate.getFullYear();
+                    }
+                    return false;
+                });
+
+                todaysItems.forEach(item => {
+                    const chip = document.createElement('div');
+                    chip.classList.add('serial-badge');
+                    
+                    const snKey = Object.keys(item).find(k => k.toLowerCase() === 'serial number');
+                    const codeKey = Object.keys(item).find(k => k.toLowerCase() === 'code serial');
+                    const poKey = Object.keys(item).find(k => k.toLowerCase().includes('po'));
+                    const statusKey = Object.keys(item).find(k => k.toLowerCase() === 'status delivery' || k.toLowerCase().includes('status'));
+
+                    const cat = codeKey && item[codeKey] ? String(item[codeKey]).trim() : 'LAINNYA';
+                    const poVal = poKey && item[poKey] ? String(item[poKey]).trim() : '';
+                    const stVal = statusKey && item[statusKey] ? String(item[statusKey]).trim() : '';
+
+                    let htmlStatus = '';
+                    if (stVal && stVal !== '-' && stVal !== '0') {
+                        htmlStatus = '<span class="status-badge sent">✔ Terkirim</span>';
+                    } else if (!poVal || poVal === '-' || poVal === '0') {
+                        htmlStatus = '<span class="status-badge stock">Stock</span>';
+                    } else {
+                        htmlStatus = '<span class="status-badge pending">Pending</span>';
+                    }
+
+                    chip.innerHTML = `<div class="serial-title">${item[snKey] || 'No Serial'}</div>${htmlStatus}`;
+                    const style = getDynamicStyle(cat);
+                    chip.style.backgroundColor = style.bg; chip.style.borderLeftColor = style.border; chip.style.color = style.text;
+                    chip.onclick = () => openModal(item);
+                    stack.appendChild(chip);
+                });
+
+                cell.appendChild(stack);
+                grid.appendChild(cell);
+            }
+        }
+
+        function openModal(dataObj) {
+            const modal = document.getElementById('itemModal');
+            const body = document.getElementById('modalBody');
+            body.innerHTML = '';
+
+            const snKey = Object.keys(dataObj).find(k => k.toLowerCase() === 'serial number');
+            const unKey = Object.keys(dataObj).find(k => k.toLowerCase() === 'unit number');
+            let bc = (dataObj[snKey] && dataObj[unKey]) ? `${dataObj[snKey]}/${dataObj[unKey]}` : (dataObj[snKey] || 'N/A');
+
+            body.innerHTML += `<div class="info-card-row" style="text-align:center; border-left:4px solid var(--accent-blue);"><span class="info-card-label">KODE BATANG</span><div class="info-card-value" style="font-size:1.1rem;">${bc}</div><div class="barcode-display-container"><svg class="bc-target" data-code="${bc}"></svg></div></div>`;
+
+            const hidden = ['no.', 'no', 'periode bulan', 'bulan', 'code serial', 'search', 'gambar', 'image'];
+            for (let key in dataObj) {
+                if (!dataObj[key] || hidden.includes(key.toLowerCase().trim())) continue;
+                let val = dataObj[key];
+                if (key.toLowerCase().includes('date') || key.toLowerCase().includes('tanggal')) {
+                    const pd = new Date(val); if (!isNaN(pd) && typeof val !== 'number') val = pd.toLocaleDateString('id-ID');
+                }
+                body.innerHTML += `<div class="info-card-row"><span class="info-card-label">${key}</span><div class="info-card-value">${val}</div></div>`;
+            }
+            modal.style.display = 'flex';
+            setTimeout(() => { 
+                const tgt = document.querySelector('.bc-target');
+                if(tgt.getAttribute('data-code') !== 'N/A') JsBarcode(tgt, tgt.getAttribute('data-code'), { format: "CODE128", width: 1.5, height: 50, displayValue: false });
+            }, 50);
+        }
+
+        function closeModal() { document.getElementById('itemModal').style.display = 'none'; }
+    </script>
+</body>
+</html>
